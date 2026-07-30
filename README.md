@@ -1,4 +1,5 @@
 # 基于 CAT-Seg 的病虫害语义分割
+**其他语言版本: [English](README_EN.md), [中文](README.md).**
 ## 1. 项目简介
 
 本项目基于 CAT-Seg 模型完成农业病虫害图像语义分割任务。
