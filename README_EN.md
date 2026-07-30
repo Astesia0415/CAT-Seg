@@ -937,11 +937,14 @@ python train_net.py \
 
 CAT-Seg belongs to: semantic segmentation
 
-```text
-mIoU → Main semantic segmentation metric
-fwIoU → Frequency-weighted IoU
-pACC → Pixel accuracy
-```
+| 指标 | 含义 |
+|---|---|
+| mIoU | Main semantic segmentation metric |
+| fwIoU | Frequency-weighted IoU |
+| pACC | Pixel accuracy |
+| Mask AP<sub>50</sub> | Mask AP at IoU threshold 0.5 |
+| Mask AP<sub>50-95</sub> | Average Mask AP at IoU threshold 0.5–0.95 |
+
 
 | Iteration | mIoU | fwIoU | mACC | pACC | Mask AP<sub>50</sub> | Mask AP<sub>50-95</sub> |
 |----|----|----|----|----|----|----|
