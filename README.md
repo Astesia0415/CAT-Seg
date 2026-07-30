@@ -178,7 +178,10 @@ json示例:
 ```bash
 count_classes.py
 ```
-count_classes.py
+
+<details>
+  <summary>count_classes.py</summary>
+  
 ```python
 import os
 import json
@@ -217,11 +220,16 @@ for i,c in enumerate(sorted(classes)):
     print(i+1,c)
 
 ```
+
+</details>
+
 运行:
 ```bash
 python get_classes.py
 ```
-Output
+<details>
+  
+<summary>Output</summary>
 
 ```text
 classes:
@@ -252,6 +260,8 @@ classes:
 25 wheat septoria blotch
 26 wheat stripe rust
 ```
+</details>
+
 #### 4.2.2 Labelme → CAT-Seg mask转换
 安装：
 ```bash
@@ -261,7 +271,9 @@ pip install pillow numpy opencv-python
 ```text
 exchange.py
 ```
-exchange.py
+<details>
+  <summary>exchange.py</summary>
+  
 ```python
 import os
 import json
@@ -424,6 +436,8 @@ for split in ["train","val","test"]:
             )
 print("Done!")
 ```
+</details>
+
 运行:
 ```bash
 python exchange.py
@@ -431,6 +445,81 @@ python exchange.py
 输出:
 ```text
 Done~
+```
+创建classes.txt
+```text
+background
+Aleurocanthus spiniferus
+Ceroplastes rubens
+Icerya purchasi Maskell
+Limacodidae
+Locustoidea
+Potosiabre vitarsis
+alfalfa plant bug
+aphids
+apple black rot
+banana anthracnose
+banana black leaf streak
+bean halo blight
+bell pepper blossom end rot
+citrus canker
+corn gray leaf spot
+corn rust
+corn smut
+garlic rust
+legume blister beetle
+oides decempunctata
+rice blast
+tarnished plant bug
+wheat leaf rust
+wheat loose smut
+wheat septoria blotch
+wheat stripe rust
+```
+创建 mask 可视化脚本
+check_mask.py
+
+_(注:可修改图片路径)_
+
+```python
+from PIL import Image
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+
+# 修改这里，选择一张存在的图片
+img_path = r"CATSeg_dataset/images/train/apple_black_rot_1_jpg.rf.e21dee4a83b8d37c916ed9d2dc1b2896.jpg"
+
+mask_path = r"CATSeg_dataset/masks/train/apple_black_rot_1_jpg.rf.e21dee4a83b8d37c916ed9d2dc1b2896.png"
+
+
+img = Image.open(img_path)
+
+mask = np.array(
+    Image.open(mask_path)
+)
+
+
+plt.figure(figsize=(12,5))
+
+
+plt.subplot(1,2,1)
+plt.imshow(img)
+plt.title("Image")
+plt.axis("off")
+
+
+plt.subplot(1,2,2)
+plt.imshow(mask)
+plt.title("Mask")
+plt.axis("off")
+
+
+plt.show()
+
+
+print("mask类别:", np.unique(mask))
 ```
 
 现在整体目录结构
@@ -450,13 +539,16 @@ autodl-tmp
           │            │   ├── train
           │            │   ├── val
           │            │   └── test
-          │            ├
+          │            │
           │            └── classes.txt
           │
           ├── count_classes.py
           │
           ├── exchange.py
+          │
+          └── check_mask.py
 ```
+
 
 
 
