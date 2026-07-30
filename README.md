@@ -876,9 +876,9 @@ python train_net.py \
 
 CAT-Seg属于：semantic segmentation
 
-主要指标：mIoU(Mean Intersection over Union)
-
-表示：预测区域和真实区域的平均重叠程度。
+mIoU → 主要语义分割指标
+fwIoU → 类别面积加权IoU
+pACC → 像素准确率
 
 | Iteration | mIoU | fwIoU | mACC | pACC |
 |----|----|----|----|----|
