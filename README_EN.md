@@ -1,5 +1,7 @@
 # CAT-Seg Based Semantic Segmentation of Crop Pests and Diseases
 
+**Read this in other languages: [English](README_EN.md), [中文](README.md).**
+
 ## 1. Project Introduction
 
 This project performs semantic segmentation of agricultural pest and disease images based on the CAT-Seg model.
