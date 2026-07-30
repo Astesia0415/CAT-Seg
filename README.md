@@ -855,7 +855,7 @@ MAX_ITER: 50000
 ```
 ## 7.开始训练
 
-###测试
+### 测试
 先跑100 iteration，检查：CLIP权重,dataloader,loss,GPU显存,mask尺寸
 
 ```bash
