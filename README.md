@@ -19,20 +19,20 @@ _数据集并未上传_
 
 | ID | Category | ID | Category |
 |----|----------|----|----------|
-| 0 | background | 13 | bell pepper blossom end rot |
-| 1 | Aleurocanthus spiniferus | 14 | citrus canker |
-| 2 | Ceroplastes rubens | 15 | corn gray leaf spot |
-| 3 | Icerya purchasi Maskell | 16 | corn rust |
-| 4 | Limacodidae | 17 | corn smut |
-| 5 | Locustoidea | 18 | garlic rust |
-| 6 | Potosiabre vitarsis | 19 | legume blister beetle |
-| 7 | alfalfa plant bug | 20 | oides decempunctata |
-| 8 | aphids | 21 | rice blast |
-| 9 | apple black rot | 22 | tarnished plant bug |
-| 10 | banana anthracnose | 23 | wheat leaf rust |
-| 11 | banana black leaf streak | 24 | wheat loose smut |
-| 12 | bean halo blight | 25 | wheat septoria blotch |
-| 26 | wheat stripe rust | | |
+| 0 | background | 14 | bell pepper blossom end rot |
+| 1 | Aleurocanthus spiniferus | 15 | citrus canker |
+| 2 | Ceroplastes rubens | 16 | corn gray leaf spot |
+| 3 | Icerya purchasi Maskell | 17 | corn rust |
+| 4 | Limacodidae | 18 | corn smut |
+| 5 | Locustoidea | 19 | garlic rust |
+| 6 | Potosiabre vitarsis | 20 | legume blister beetle |
+| 7 | alfalfa plant bug | 21 | oides decempunctata |
+| 8 | aphids | 22 | rice blast |
+| 9 | apple black rot | 23 | tarnished plant bug |
+| 10 | banana anthracnose | 24 | wheat leaf rust |
+| 11 | banana black leaf streak | 25 | wheat loose smut |
+| 12 | bean halo blight | 26 | wheat septoria blotch |
+| 13 | wheat stripe rust | | |
 
 ## 2. 实验环境
 ### 服务器配置
