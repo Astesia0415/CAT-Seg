@@ -878,11 +878,13 @@ python train_net.py \
 
 CAT-Seg属于：semantic segmentation
 
-```text
-mIoU → 主要语义分割指标
-fwIoU → 类别面积加权IoU
-pACC → 像素准确率
-```
+| 指标 | 含义 |
+|---|---|
+| mIoU | 主要语义分割指标 |
+| fwIoU | 类别面积加权 IoU |
+| pACC | 像素准确率 |
+| Mask AP<sub>50</sub> | IoU=0.5 下的 Mask AP |
+| Mask AP<sub>50-95</sub> | IoU 0.5~0.95 平均 Mask AP |
 
 | Iteration | mIoU | fwIoU | mACC | pACC | Mask AP<sub>50</sub> | Mask AP<sub>50-95</sub> |
 |----|----|----|----|----|----|----|
