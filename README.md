@@ -1,4 +1,4 @@
-# CAT-Seg 病虫害语义分割实验复现记录
+# 基于 CAT-Seg 的病虫害语义分割
 ## 1. 项目简介
 
 本项目基于 CAT-Seg 模型完成农业病虫害图像语义分割任务。
@@ -876,14 +876,24 @@ python train_net.py \
 
 CAT-Seg属于：semantic segmentation
 
+```text
 mIoU → 主要语义分割指标
 fwIoU → 类别面积加权IoU
 pACC → 像素准确率
+```
 
-| Iteration | mIoU | fwIoU | mACC | pACC |
-|----|----|----|----|----|
-| 100 | 2.4589 | 3.5563 | 18.3378 | 5.8825 |
-| 22000 | 59.6129 | 89.5649 | 72.5572 | 93.8348 |
+| Iteration | mIoU | fwIoU | mACC | pACC | Mask AP<sub>50</sub> | Mask AP<sub>50-95</sub> |
+|----|----|----|----|----|----|----|
+| 100 | 2.4589 | 3.5563 | 18.3378 | 5.8825 | unknow | unknow |
+| 22000 | 59.6129 | 89.5649 | 72.5572 | 93.8348 | unknow | unknow |
+| 50000 | unknow | unknow | unknow | unknow | unknow | unknow |
+
+### _注_ :Mask AP评估
+
+由于本数据集提供的是语义分割标注，
+在进行COCO评估之前，通过连通域分析方法将语义分割预测结果转换为实例掩码。
+
+因此，本文报告的mask AP指标表示由语义分割预测结果转换得到的实例级评估结果。
 
 ## 8. 最终实验记录
 训练完成保存：
@@ -895,9 +905,11 @@ output/
 └── inference/
 ```
 
+## 致谢
 
+这个项目基于 [CAT-Seg](https://github.com/cvlab-kaist/CAT-Seg)
 
-
+感谢CAT-Seg作者们的出色工作
 
 
 
