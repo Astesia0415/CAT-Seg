@@ -39,12 +39,21 @@
   本实验模型运行于Autodl平台vGPU-32GB服务器
   | 项目 | 配置|
   |-----|-----|
+  | OS | Ubuntu 20.04.3 LTS |
   | CPU | 12 vCPU Intel Xeon Platinum 8352V |
   | GPU | NVIDIA RTX4080 32GB |
   | Ram | 62GB |
   | CUDA | 13.0 |
   | Python | 3.8.20 |
-
+### 辅助设备配置
+  | 项目 | 配置|
+  |-----|-----|
+  | OS | Windows 10 Professional 22H2 |
+  | CPU | Intel Core Ultra 9 275HX 2.70 GHz |
+  | GPU |  NVIDIA GeForce RTX 5070 Laptop GPU 8 GB |
+  | Ram | 16GB |
+  | CUDA | 13.1 |
+  | Python | 3.10.20 |
 ## 3. 基础环境安装
 ### 3.1 环境配置
   ```bash
@@ -844,7 +853,7 @@ DATASETS:
 ```yaml
 MAX_ITER: 50000
 ```
-##开始训练
+## 7.开始训练
 
 ###测试
 先跑100 iteration，检查：CLIP权重,dataloader,loss,GPU显存,mask尺寸
@@ -863,11 +872,28 @@ python train_net.py \
 --num-gpus 1
 ```
 ### 训练结果
+模型评价指标
+
+CAT-Seg属于：semantic segmentation
+
+主要指标：mIoU(Mean Intersection over Union)
+
+表示：预测区域和真实区域的平均重叠程度。
+
 | Iteration | mIoU | fwIoU | mACC | pACC |
 |----|----|----|----|----|
 | 100 | 2.4589 | 3.5563 | 18.3378 | 5.8825 |
 | 22000 | 59.6129 | 89.5649 | 72.5572 | 93.8348 |
 
+## 8. 最终实验记录
+训练完成保存：
+```text
+output/
+│
+├── model_final.pth
+├── log.txt
+└── inference/
+```
 
 
 
