@@ -912,7 +912,7 @@ CAT-Seg属于：semantic segmentation
 | 22000 | 59.6129 | 89.5649 | 72.5572 | 93.8348 | 0.192 | 0.338 |
 | 50000 | 62.9302 | 90.1173 | 75.7766 | 94.2312 | 0.201 | 0.356 |
 
-> [!NOTE]
+>  [!NOTE]
 > _关于 Mask AP评估_\
 > 由于本数据集提供的是语义分割标注，
 > 在进行COCO评估之前，通过连通域分析方法将语义分割预测结果转换为实例掩码。
@@ -1491,8 +1491,8 @@ python save_prediction.py
 
 python calculate_mask_ap.py
 ```
-> [!NOTE]
-> 可修改save_prediction.py中的路径
+
+> _可修改save_prediction.py中的路径_
 
 </details>
 
