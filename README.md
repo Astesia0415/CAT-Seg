@@ -874,6 +874,26 @@ python train_net.py \
 --num-gpus 1
 ```
 ### 训练结果
+
+使用test集测试
+修改
+```text
+configs/pest_vitb_384.yaml
+```
+```yaml
+DATASETS:
+  TRAIN: ("pest_train",)
+  TEST: ("pest_test",)
+```
+运行
+```bash
+python train_net.py \
+--num-gpus 1 \
+--config-file configs/pest_vitb_384.yaml \
+--eval-only \
+MODEL.WEIGHTS output/model_final.pth
+```
+
 模型评价指标
 
 CAT-Seg属于：semantic segmentation
@@ -889,15 +909,592 @@ CAT-Seg属于：semantic segmentation
 | Iteration | mIoU | fwIoU | mACC | pACC | Mask AP<sub>50</sub> | Mask AP<sub>50-95</sub> |
 |----|----|----|----|----|----|----|
 | 100 | 2.4589 | 3.5563 | 18.3378 | 5.8825 | unknow | unknow |
-| 22000 | 59.6129 | 89.5649 | 72.5572 | 93.8348 | unknow | unknow |
-| 50000 | unknow | unknow | unknow | unknow | unknow | unknow |
+| 22000 | 59.6129 | 89.5649 | 72.5572 | 93.8348 | 0.192 | 0.338 |
+| 50000 | 62.9302 | 90.1173 | 75.7766 | 94.2312 | 0.201 | 0.356 |
 
-### _注_ :Mask AP评估
+> [!NOTE]
+> _关于 Mask AP评估_\
+> 由于本数据集提供的是语义分割标注，
+> 在进行COCO评估之前，通过连通域分析方法将语义分割预测结果转换为实例掩码。
+> 因此，本文报告的mask AP指标表示由语义分割预测结果转换得到的实例级评估结果。
+> _个人认为转换后的结果可信度不高_
 
-由于本数据集提供的是语义分割标注，
-在进行COCO评估之前，通过连通域分析方法将语义分割预测结果转换为实例掩码。
+<details>
+ <summary>方法</summary>
 
-因此，本文报告的mask AP指标表示由语义分割预测结果转换得到的实例级评估结果。
+工作目录
+```text
+./CAT-Seg
+```
+
+save_prediction.py
+
+<details>
+  <summary>save_prediction.py</summary>
+
+  ```python
+import os
+import cv2
+import torch
+import numpy as np
+
+from detectron2.config import get_cfg
+from detectron2.engine import DefaultPredictor
+from detectron2.data import DatasetCatalog
+
+from cat_seg import add_cat_seg_config
+import cat_seg.data.datasets
+
+
+# ======================
+# 配置
+# ======================
+
+CONFIG_FILE = "configs/pest_vitb_384.yaml"
+
+MODEL_PATH = "output/model_final.pth"
+
+SAVE_DIR = "prediction_test"
+
+
+# ======================
+# 初始化
+# ======================
+
+def setup_cfg():
+
+    cfg = get_cfg()
+
+    add_cat_seg_config(cfg)
+
+    cfg.merge_from_file(CONFIG_FILE)
+
+    cfg.MODEL.WEIGHTS = MODEL_PATH
+
+    cfg.MODEL.DEVICE = "cuda"
+
+    cfg.freeze()
+
+    return cfg
+
+
+
+# ======================
+# 保存预测
+# ======================
+
+def main():
+
+    os.makedirs(SAVE_DIR, exist_ok=True)
+
+    CONF_DIR = "prediction_conf"
+
+    os.makedirs(
+        CONF_DIR,
+        exist_ok=True
+    )
+
+
+    cfg = setup_cfg()
+
+
+    predictor = DefaultPredictor(cfg)
+
+
+    # 注册数据集
+    import cat_seg.data.datasets.register_pest
+
+    dataset = DatasetCatalog.get("pest_test")
+
+
+    print("Test images:", len(dataset))
+
+
+    for idx, item in enumerate(dataset):
+
+        image_path = item["file_name"]
+
+
+        image = cv2.imread(image_path)
+
+        image_rgb = cv2.cvtColor(
+            image,
+            cv2.COLOR_BGR2RGB
+        )
+
+
+        # 推理
+        with torch.no_grad():
+
+            outputs = predictor(image_rgb)
+
+
+                # CAT-Seg semantic segmentation 输出
+        sem_seg = outputs["sem_seg"]
+
+        # probability
+        prob = torch.softmax(
+            sem_seg,
+            dim=0
+        )
+
+        # predicted class
+        pred_mask = prob.argmax(dim=0)
+
+        # confidence of predicted class
+        confidence = prob.max(dim=0)[0]
+
+
+        pred_mask = (
+            pred_mask
+            .cpu()
+            .numpy()
+            .astype(np.uint8)
+        )
+
+
+        confidence = (
+            confidence
+            .cpu()
+            .numpy()
+            .astype(np.float32)
+        )
+        
+        # 保存路径
+
+        name = os.path.basename(
+            image_path
+        )
+
+        name = name.replace(
+            ".jpg",
+            ".png"
+        )
+
+
+        save_path = os.path.join(
+            SAVE_DIR,
+            name
+        )
+
+
+        cv2.imwrite(
+            save_path,
+            pred_mask
+        )
+
+        conf_path = os.path.join(
+            CONF_DIR,
+            name.replace(".png",".npy")
+        )
+
+        np.save(
+            conf_path,
+            confidence
+        )
+        
+        if idx % 20 == 0:
+
+            print(
+                f"{idx}/{len(dataset)} saved"
+            )
+
+
+    print("Prediction finished!")
+
+
+
+if __name__ == "__main__":
+
+    main()
+```
+  
+</details>
+
+计算Mask AP
+calculate_mask_ap.py
+<details>
+  <summary>calculate_mask_ap.py</summary>
+  
+  ```python
+  import os
+import json
+import cv2
+import numpy as np
+
+from pycocotools import mask as maskUtils
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
+
+from detectron2.data import DatasetCatalog
+
+import cat_seg.data.datasets
+
+
+# =========================
+# Path
+# =========================
+
+PRED_DIR = "prediction_test"
+CONF_DIR = "prediction_conf"
+
+GT_JSON = "gt_coco.json"
+PRED_JSON = "pred_coco.json"
+
+
+# =========================
+# Dataset
+# =========================
+
+dataset = DatasetCatalog.get("pest_test")
+
+
+# =========================
+# semantic mask -> coco rle
+# =========================
+
+def mask_to_rle(binary_mask):
+
+    rle = maskUtils.encode(
+        np.asfortranarray(binary_mask.astype(np.uint8))
+    )
+
+    rle["counts"] = rle["counts"].decode("utf-8")
+
+    return rle
+
+
+
+# =========================
+# Generate GT
+# =========================
+
+def build_gt():
+
+    images = []
+    annotations = []
+
+    ann_id = 1
+
+
+    for img_id, item in enumerate(dataset):
+
+        img_path = item["file_name"]
+
+        name = os.path.basename(img_path)
+
+        image = cv2.imread(img_path)
+
+        height, width = image.shape[:2]
+
+
+        images.append(
+            {
+                "id": img_id,
+                "file_name": name,
+                "height": height,
+                "width": width
+            }
+        )
+
+
+        mask_path = item["sem_seg_file_name"]
+
+
+        gt = cv2.imread(
+            mask_path,
+            0
+        )
+
+
+        classes = np.unique(gt)
+
+
+        for cls in classes:
+
+            if cls == 0:
+                continue
+
+
+            binary = (
+                gt == cls
+            )
+
+
+            num, labels = cv2.connectedComponents(
+                binary.astype(np.uint8)
+            )
+
+
+            for i in range(1,num):
+
+                instance = (
+                    labels == i
+                )
+
+
+                if instance.sum() < 10:
+                    continue
+
+
+                rle = mask_to_rle(instance)
+
+
+                annotations.append(
+                    {
+                        "id":ann_id,
+                        "image_id":img_id,
+                        "category_id":int(cls),
+                        "segmentation":rle,
+                        "area":float(instance.sum()),
+                        "bbox":
+                        list(
+                            cv2.boundingRect(
+                                instance.astype(np.uint8)
+                            )
+                        ),
+                        "iscrowd":0
+                    }
+                )
+
+                ann_id+=1
+
+
+
+    categories=[]
+
+    for i in range(27):
+
+        categories.append(
+            {
+                "id":i,
+                "name":str(i)
+            }
+        )
+
+
+    coco={
+
+        "images":images,
+
+        "annotations":annotations,
+
+        "categories":categories
+
+    }
+
+
+    with open(
+        GT_JSON,
+        "w"
+    ) as f:
+
+        json.dump(
+            coco,
+            f
+        )
+
+
+    print(
+        "GT saved:",
+        GT_JSON
+    )
+
+
+
+
+# =========================
+# Generate Prediction
+# =========================
+
+
+def build_prediction():
+
+    predictions=[]
+
+
+    for img_id,item in enumerate(dataset):
+
+
+        img_path=item["file_name"]
+
+
+        name=os.path.basename(
+            img_path
+        )
+
+
+        pred_path=os.path.join(
+            PRED_DIR,
+            name.replace(
+                ".jpg",
+                ".png"
+            )
+        )
+
+
+        conf_path=os.path.join(
+            CONF_DIR,
+            name.replace(
+                ".jpg",
+                ".npy"
+            )
+        )
+
+
+        pred=cv2.imread(
+            pred_path,
+            0
+        )
+
+
+        confidence=np.load(
+            conf_path
+        )
+
+
+
+        classes=np.unique(pred)
+
+
+
+        for cls in classes:
+
+
+            if cls==0:
+                continue
+
+
+
+            binary=(
+                pred==cls
+            )
+
+
+
+            num,labels=cv2.connectedComponents(
+                binary.astype(np.uint8)
+            )
+
+
+
+            for i in range(1,num):
+
+
+                instance=(
+                    labels==i
+                )
+
+
+                if instance.sum()<10:
+                    continue
+
+
+
+                rle=mask_to_rle(
+                    instance
+                )
+
+
+                # confidence
+                score=float(
+                    confidence[instance].mean()
+                )
+
+
+                predictions.append(
+
+                    {
+                        "image_id":img_id,
+
+                        "category_id":int(cls),
+
+                        "segmentation":rle,
+
+                        "score":score
+
+                    }
+
+                )
+
+
+
+    with open(
+        PRED_JSON,
+        "w"
+    ) as f:
+
+        json.dump(
+            predictions,
+            f
+        )
+
+
+    print(
+        "Prediction saved:",
+        PRED_JSON
+    )
+
+
+
+
+
+# =========================
+# COCO evaluation
+# =========================
+
+
+def evaluate():
+
+
+    coco_gt=COCO(
+        GT_JSON
+    )
+
+
+    coco_dt=coco_gt.loadRes(
+        PRED_JSON
+    )
+
+
+    evaluator=COCOeval(
+        coco_gt,
+        coco_dt,
+        "segm"
+    )
+
+
+    evaluator.evaluate()
+
+    evaluator.accumulate()
+
+    evaluator.summarize()
+
+
+
+if __name__=="__main__":
+
+
+    build_gt()
+
+    build_prediction()
+
+    evaluate()
+```
+    
+</details>
+
+运行：
+
+```bash
+python save_prediction.py
+
+python calculate_mask_ap.py
+```
+> [!NOTE]
+> 可修改save_prediction.py中的路径
+
+</details>
 
 ## 8. 最终实验记录
 训练完成保存：
@@ -908,6 +1505,14 @@ output/
 ├── log.txt
 └── inference/
 ```
+
+## 9. 零样本/少样本训练
+
+| shots | mIoU | fwIoU | mACC | pACC | Mask AP<sub>50</sub> | Mask AP<sub>50-95</sub> |
+|----|----|----|----|----|----|----|
+| 0 | 1.3786 | 1.7798 |9.3787 | 3.1200 | unknow | unknow |
+| 5 | 59.6129 | 89.5649 | 72.5572 | 93.8348 | 0.192 | 0.338 |
+| 10 | 62.9302 | 90.1173 | 75.7766 | 94.2312 | 0.201 | 0.356 |
 
 ## 致谢
 
